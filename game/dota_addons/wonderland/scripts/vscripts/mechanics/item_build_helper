@@ -1,0 +1,8 @@
+function EquipItemsWithName( unit, itemsName)
+	local owner = unit:GetOwner()
+
+	for k, itemName in pairs(itemsName) do
+		local item = CreateItem(itemName, owner, owner)
+		unit:AddItem(item)
+	end
+end
