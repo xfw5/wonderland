@@ -44,7 +44,7 @@
 		"RingRadius"	"40"
 	}
 
-	"npc_flying_dummy"
+	"FlyVisionOnly"
 	{
 		"BaseClass"	"npc_dota_base"
 		"Ability1"	""
@@ -67,6 +67,5 @@
 		"BoundsHullName"	"0"
 		"MovementCapabilities"	"DOTA_UNIT_CAP_MOVE_FLY"
 		"Model"	"models/development/invisiblebox.mdl"
-		"AttackCapabilities"	"DOTA_UNIT_CAP_NO_ATTACK"
 	}
 }

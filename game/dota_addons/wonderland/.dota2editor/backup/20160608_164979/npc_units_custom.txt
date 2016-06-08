@@ -43,30 +43,4 @@
 		"Level"	"1"
 		"RingRadius"	"40"
 	}
-
-	"npc_flying_dummy"
-	{
-		"BaseClass"	"npc_dota_base"
-		"Ability1"	""
-		"Ability2"	""
-		"Ability3"	""
-		"Ability4"	""
-		"Ability5"	""
-		"Ability6"	""
-		"Ability7"	""
-		"Ability8"	""
-		"Ability9"	""
-		"Ability10"	""
-		"Ability11"	""
-		"Ability12"	""
-		"Ability13"	""
-		"Ability14"	""
-		"Ability15"	""
-		"Ability16"	""
-		"RingRadius"	"0"
-		"BoundsHullName"	"0"
-		"MovementCapabilities"	"DOTA_UNIT_CAP_MOVE_FLY"
-		"Model"	"models/development/invisiblebox.mdl"
-		"AttackCapabilities"	"DOTA_UNIT_CAP_NO_ATTACK"
-	}
 }

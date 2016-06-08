@@ -44,7 +44,7 @@
 		"RingRadius"	"40"
 	}
 
-	"npc_flying_dummy"
+	"FlyVisionOnly"
 	{
 		"BaseClass"	"npc_dota_base"
 		"Ability1"	""

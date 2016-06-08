@@ -76,7 +76,7 @@
 			{
 				"Target"	"POINT"
 				"Function"	"OnBuildingScoutTower"
-				"ScriptFile"	"abilities/ability_build.lua"
+				"ScriptFile"	"items/item_build_scout_tower.lua"
 				"UnitName"	"npc_building_scout_tower"
 			}
 		}

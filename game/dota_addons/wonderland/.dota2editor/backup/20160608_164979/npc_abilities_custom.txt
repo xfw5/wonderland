@@ -183,7 +183,7 @@
 	{
 		"BaseClass"	"ability_lua"
 		"ScriptFile"	"unit/building/tower_lua.lua"
-		"AbilityBehavior"	"DOTA_ABILITY_BEHAVIOR_HIDDEN"
+		"AbilityBehavior"	"DOTA_ABILITY_BEHAVIOR_PASSIVE"
 	}
 
 	"passive_construction_building_lua"

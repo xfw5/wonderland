@@ -1,6 +1,7 @@
 
-require("utils/utils")
 require("lib/timers")
+require("lib/buildingHelper")
+require("utils/utils")
 require("Wonderland")
 
 function Precache( context )

@@ -6,3 +6,12 @@ function Utils:SetupAllAbilitiesAsLevel(hero, level)
 		end
 	end
 end
+
+function Utils:AddAbility(unit, pAbilityName)
+	local ability = unit:FindAbilityByName(pAbilityName)
+	if ability == nil then
+		ability = unit:AddAbility(pAbilityName)
+	end
+
+	return ability
+end
