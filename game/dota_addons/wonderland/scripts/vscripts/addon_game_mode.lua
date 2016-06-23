@@ -1,6 +1,7 @@
 
 require("lib/timers")
 require("lib/buildingHelper")
+require("mechanics/Players")
 require("utils/utils")
 require("Wonderland")
 

@@ -13,7 +13,7 @@ function WonderlandGM:InitGameMode()
 
 	WonderlandGM = self
 
-	WonderlandGM:LoadingConfig()
+	WonderlandGM:LoadingKV()
 	WonderlandGM:SetupGameRules()
 	WonderlandGM:HookGameEvents()
 	WonderlandGM:RegisterCommands()
@@ -21,9 +21,14 @@ function WonderlandGM:InitGameMode()
 	Utils:Wprint("Game mode loading done.");
 end
 
-function WonderlandGM:LoadingConfig()
+function WonderlandGM:LoadingKV()
 	Utils:Wprint('Loading config...')
 	_G.GameConfig = LoadKeyValues("scripts/config/game.config")
+
+	GameRules.AbilitiesKV = LoadKeyValues("scripts/npc/npc_abilities_custom.txt")
+  	GameRules.UnitsKV = LoadKeyValues("scripts/npc/npc_units_custom.txt")
+  	GameRules.ItemsKV = LoadKeyValues("scripts/npc/npc_items_custom.txt")
+
 	Utils:Wprint('Config loading Done')
 end
 
@@ -62,7 +67,7 @@ function WonderlandGM:HookGameEvents()
 	ListenToGameEvent('dota_player_killed', Dynamic_Wrap(WonderlandGM, 'OnDotaPlayerKilled'), self)
 	ListenToGameEvent('dota_player_gained_level', Dynamic_Wrap(WonderlandGM, 'OnPlayerLevelUp'), self)
 	ListenToGameEvent('dota_player_learned_ability', Dynamic_Wrap(WonderlandGM, 'OnPlayerLearnedAbility'), self)
-	ListenToGameEvent('dota_hero_swap', Dynamic_Wrap(WonderlandGM, 'OnHeroSpawn'), self)
+	ListenToGameEvent('dota_player_pick_hero', Dynamic_Wrap(WonderlandGM, 'OnHeroPicked'), self)
 
 	ListenToGameEvent('dota_chat_first_blood', Dynamic_Wrap(WonderlandGM, 'OnChatFirstBlood'), self)
 	ListenToGameEvent('entity_killed', Dynamic_Wrap(WonderlandGM, 'OnEntityKilled'), self)
@@ -88,7 +93,7 @@ function WonderlandGM:OnGameRulesChange( keys )
 end
 
 function WonderlandGM:OnGRVoting()
-	-- body
+	BuildingHelper:Init()
 end
 
 function WonderlandGM:OnGRPreGame()

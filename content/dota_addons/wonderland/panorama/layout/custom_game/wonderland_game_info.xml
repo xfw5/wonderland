@@ -1,0 +1,19 @@
+<root>
+	<styles>
+		<include src="file://{resources}/styles/custom_game/wonderland_game_info.css" />
+	</styles>
+	<Panel class="WonderlandGameInfo">
+		<Panel id="Title">
+			<Label id="TitleName" text="#addon_game_name" />
+		</Panel>
+
+		<Panel id="EntMissionDes" class="PlayerMission">
+			<Label id="EntMissionTitle" class="MissionText" html="true" text="#wonderland_game_info_ent_mission" />
+		</Panel>
+		
+		<Panel id="InfernalMissionDes" class="PlayerMission">
+			<Label id="InfernalMissionTitle" class="MissionText" html="true" text="#wonderland_game_info_infernal_mission" />
+		</Panel>
+	</Panel>
+</root>
+

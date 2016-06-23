@@ -7,14 +7,17 @@ if IsServer() then
 			[MODIFIER_STATE_ROOTED] = true;
 			[MODIFIER_STATE_DISARMED] = true;
 		}
+
+		return state
 	end
+
 
 	function modifier_passive_construction_building_lua:IsPurgable()
 		return false
 	end
 
 	function modifier_passive_construction_building_lua:IsHidden()
-		return true
+		return false
 	end
 
 	function modifier_passive_construction_building_lua:IsPassive()

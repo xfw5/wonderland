@@ -1,0 +1,53 @@
+.WonderlandGameInfo
+{
+    width:100%;
+    flow-children: down;
+}
+ 
+Label
+{
+    font-size: 18px;
+    color: #999999;
+    vertical-align: top;
+}
+ 
+#Title
+{
+    flow-children: right;
+}
+
+#TitleName
+{
+    color: #cccccc;
+    font-size: 64px;
+    margin-left: 16px;
+    margin-top: 16px;
+    text-transform: uppercase;
+    vertical-align: center;
+}
+
+#EntMissionDes
+{
+   width:100%;
+}
+
+#EntMissionTitle
+{
+    flow-children: right;
+}
+
+.MissionText
+{
+    width:100%;
+    flow-children: right;
+}
+
+#InfernalMissionDes
+{
+    width:100%;
+}
+
+#InfernalMissionTitle
+{    
+    flow-children: right;
+}

@@ -32,8 +32,10 @@ function WonderlandGM:OnPlayerLearnedAbility( keys )
 	DeepPrintTable(keys)
 end
 
-function WonderlandGM:OnHeroSpawn( keys )
+function WonderlandGM:OnHeroPicked( keys )
 	DeepPrintTable(keys)
+
+	Players:Init(keys.player, EntIndexToHScript(keys.heroindex))
 end
 
 function WonderlandGM:OnChatFirstBlood( keys )

@@ -1,0 +1,216 @@
+// Dota2 Editor
+// Get latest version: https://github.com/zombieJ/nw-dota2editor
+
+"DOTAAbilities"
+{
+	"Version"		"1"
+
+	"infernal_shockwave_lua"
+	{
+		"BaseClass"	"ability_lua"
+		"AbilityTextureName"	"queenofpain_sonic_wave"
+		"ScriptFile"	"unit/infernal/infernal_shockwave_lua.lua"
+		"AbilityBehavior"	"DOTA_ABILITY_BEHAVIOR_POINT"
+		"MaxLevel"	"4"
+		"AbilityCastPoint"	"0.2"
+		"AbilityCooldown"	"12"
+		"AbilityManaCost"	"100"
+		"AbilitySpecial"
+		{
+			"01"
+			{
+				"var_type"	"FIELD_INTEGER"
+				"shockwave_distance"	"1000 1050 1100 1150"
+			}
+			"02"
+			{
+				"var_type"	"FIELD_INTEGER"
+				"shockwave_width"	"50"
+			}
+			"03"
+			{
+				"var_type"	"FIELD_INTEGER"
+				"shockwave_speed"	"1200"
+			}
+			"04"
+			{
+				"var_type"	"FIELD_INTEGER"
+				"shockwave_damage"	"500 600 700 800"
+			}
+		}
+	}
+
+	"infernal_stomp_lua"
+	{
+		"BaseClass"	"ability_lua"
+		"AbilityTextureName"	"centaur_hoof_stomp"
+		"ScriptFile"	"unit/infernal/infernal_stomp_lua.lua"
+		"AbilityBehavior"	"DOTA_ABILITY_BEHAVIOR_NO_TARGET"
+		"MaxLevel"	"4"
+		"AbilityCooldown"	"12"
+		"AbilityManaCost"	"100"
+		"AbilitySpecial"
+		{
+			"01"
+			{
+				"var_type"	"FIELD_INTEGER"
+				"stomp_damage"	"500 600 700 800 1000 1200"
+			}
+			"02"
+			{
+				"var_type"	"FIELD_INTEGER"
+				"stomp_radius"	"315"
+			}
+			"03"
+			{
+				"var_type"	"FIELD_INTEGER"
+				"stomp_stun_duration"	"2 2.5 3 3.5 4 4.5"
+			}
+		}
+	}
+
+	"infernal_chain_lightning_lua"
+	{
+		"BaseClass"	"ability_lua"
+		"AbilityTextureName"	"harpy_storm_chain_lightning"
+		"ScriptFile"	"unit/infernal/infernal_chain_lightning_lua.lua"
+		"AbilityBehavior"	"DOTA_ABILITY_BEHAVIOR_POINT"
+		"MaxLevel"	"4"
+		"AbilityCooldown"	"12"
+		"AbilityManaCost"	"100"
+		"AbilityCastRange"	"350"
+	}
+
+	"ent_blink_lua"
+	{
+		"BaseClass"	"ability_lua"
+		"AbilityTextureName"	"antimage_blink"
+		"ScriptFile"	"unit/ent/ent_blink_lua.lua"
+		"AbilityBehavior"	"DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_DIRECTIONAL | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES"
+		"MaxLevel"	"1"
+		"AbilityCastPoint"	"0.3"
+		"AbilityCooldown"	"12"
+		"AbilityManaCost"	"50"
+		"AbilitySpecial"
+		{
+			"01"
+			{
+				"var_type"	"FIELD_INTEGER"
+				"blink_range"	"1000"
+			}
+		}
+	}
+
+	"ent_windrun_lua"
+	{
+		"BaseClass"	"ability_lua"
+		"AbilityTextureName"	"windrunner_windrun"
+		"ScriptFile"	"unit/ent/ent_windrun_lua.lua"
+		"AbilityBehavior"	"DOTA_ABILITY_BEHAVIOR_NO_TARGET | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES"
+		"MaxLevel"	"1"
+		"AbilityCastPoint"	"0.2"
+		"AbilityCooldown"	"12"
+		"AbilityManaCost"	"50"
+		"AbilitySpecial"
+		{
+			"01"
+			{
+				"var_type"	"FIELD_INTEGER"
+				"windrun_duration"	"5"
+			}
+			"02"
+			{
+				"var_type"	"FIELD_INTEGER"
+				"windrun_bonus_speed_percentage"	"400"
+			}
+		}
+	}
+
+	"ent_swallow_tree_lua"
+	{
+		"BaseClass"	"ability_lua"
+		"AbilityTextureName"	"juggernaut_blade_dance"
+		"ScriptFile"	"unit/ent/ent_swallow_tree_lua.lua"
+		"AbilityBehavior"	"DOTA_ABILITY_BEHAVIOR_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_AUTOCAST | DOTA_ABILITY_BEHAVIOR_ROOT_DISABLES"
+		"AbilityUnitTargetType"	"DOTA_UNIT_TARGET_TREE"
+		"AbilityUnitTargetTeam"	"DOTA_UNIT_TARGET_TEAM_BOTH"
+		"AbilityUnitTargetFlags"	"DOTA_UNIT_TARGET_FLAG_INVULNERABLE"
+		"MaxLevel"	"1"
+	}
+
+	"ent_destroy_trees_lua"
+	{
+		"BaseClass"	"ability_lua"
+		"AbilityTextureName"	"lina_light_strike_array"
+		"ScriptFile"	"unit/ent/ent_burning_trees_lua.lua"
+		"AbilityBehavior"	"DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_AOE | DOTA_ABILITY_BEHAVIOR_CHANNELLED"
+		"AbilityUnitTargetType"	"DOTA_UNIT_TARGET_TREE"
+		"AbilityUnitTargetTeam"	"DOTA_UNIT_TARGET_TEAM_BOTH"
+		"AbilityUnitDamageType"	"DAMAGE_TYPE_MAGICAL"
+		"SpellImmunityType"	"SPELL_IMMUNITY_NONE"
+		"AbilityType"	"DOTA_ABILITY_TYPE_BASIC"
+		"MaxLevel"	"1"
+		"AbilityCooldown"	"10"
+		"AbilityManaCost"	"50"
+		"AbilityCastRange"	"750"
+		"AbilityChannelTime"	"1"
+		"AbilityChannelledManaCostPerSecond"	"50"
+		"AOERadius"	"200"
+		"AbilitySpecial"
+		{
+			"01"
+			{
+				"var_type"	"FIELD_INTEGER"
+				"burning_trees_aoe"	"150"
+			}
+		}
+	}
+
+	"building_lua"
+	{
+		"BaseClass"	"ability_lua"
+		"ScriptFile"	"unit/building/building_lua.lua"
+		"AbilityBehavior"	"DOTA_ABILITY_BEHAVIOR_HIDDEN"
+	}
+
+	"training_lua"
+	{
+		"BaseClass"	"ability_datadriven"
+		"AbilityBehavior"	"DOTA_ABILITY_BEHAVIOR_PASSIVE"
+	}
+
+	"tower_lua"
+	{
+		"BaseClass"	"ability_lua"
+		"ScriptFile"	"unit/building/tower_lua.lua"
+		"AbilityBehavior"	"DOTA_ABILITY_BEHAVIOR_HIDDEN"
+	}
+
+	"passive_construction_building_lua"
+	{
+		"BaseClass"	"ability_lua"
+		"ScriptFile"	"unit/building/passive_construction_building_lua.lua"
+		"AbilityBehavior"	"DOTA_ABILITY_BEHAVIOR_HIDDEN | DOTA_ABILITY_BEHAVIOR_PASSIVE"
+	}
+
+	"GridDebugger"
+	{
+		"BaseClass"	"ability_datadriven"
+		"AbilityBehavior"	"DOTA_ABILITY_BEHAVIOR_POINT | DOTA_ABILITY_BEHAVIOR_AOE"
+		"AbilityUnitTargetType"	"DOTA_UNIT_TARGET_ALL"
+		"AbilityUnitTargetTeam"	"DOTA_UNIT_TARGET_TEAM_ENEMY"
+		"OnAbilityPhaseStart"
+		{
+			"RunScript"
+			{
+				"Target"	"POINT"
+				"ScriptFile"	"scripts/vscripts/abilities/ability_build.lua"
+				"Function"	"DebugBuildingGrid"
+			}
+		}
+		"Modifiers"
+		{
+			"modifier_GridDebugger"	{}
+		}
+	}
+}

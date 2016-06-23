@@ -1,6 +1,6 @@
 modifier_true_sight_reveal_lua = class ({})
 
-if IsServer()
+if IsServer() then
 	function modifier_true_sight_reveal_lua:IsHidden()
 		return true
 	end
@@ -13,8 +13,8 @@ if IsServer()
 		return false
 	end
 
-	function modifier_true_sight_reveal_lua:GetAttributes()
-		return MODIFIER_ATTRIBUTE_IGNORE_INVULNERABLE
+	function modifier_true_sight_reveal_lua:IsPassive()
+		return true
 	end
 
 	function modifier_true_sight_reveal_lua:CheckState()

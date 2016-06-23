@@ -2,7 +2,7 @@ ent_blink_lua = class ({})
 
 function ent_blink_lua:OnSpellStart()
 	local caster = self:GetCaster()
-	
+
 	FindClearSpaceForUnit(caster, self.blink_location, false)
 	ProjectileManager:ProjectileDodge(caster)
 	
@@ -33,5 +33,17 @@ function ent_blink_lua:OnAbilityPhaseStart()
 end
 
 function ent_blink_lua:GetCastRange(vLocation, hTarget)
-	return self:GetSpecialValueFor("blink_range");
+	return self:GetSpecialValueFor("blink_range")
+end
+
+function ent_blink_lua:GetBehavior()
+	return DOTA_ABILITY_BEHAVIOR_DIRECTIONAL + DOTA_ABILITY_BEHAVIOR_POINT + DOTA_ABILITY_BEHAVIOR_IGNORE_PSEUDO_QUEUE
+end
+
+function ent_blink_lua:GetAbilityTargetType()
+	return DOTA_UNIT_TARGET_NONE
+end
+
+function ent_blink_lua:CastFilterResultLocation(vLocation)
+	return UF_SUCCESS
 end

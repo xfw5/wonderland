@@ -6,7 +6,11 @@ require("utils/utils_item")
 require("utils/utils_ability")
 
 function Utils:Wprint(msg)
-	print("[Wonderland]" .. msg)
+	print('[Wonderland] '..msg)
+end
+
+function Utils:BTPrint(msg)
+	print('[BuildingHelper] '..msg)
 end
 
 function Utils:GetInfernalModel(pszName)
@@ -94,4 +98,27 @@ function Utils:CreateFlyingDummy(vLocation, hPlayer, fDayVision, fNightVision, f
 	end
 
 	return unit;
+end
+
+function Utils:Round(fNum, fIDP)
+	local mult = 10^(fIDP or 0)
+  	return math.floor(fNum * mult + 0.5) / mult
+end
+
+function Utils:PushAwayUnits(nTeamNum, vLocation, fRadius)
+	local units = FindUnitsInRadius(	
+		nTeamNum,
+		vLocation, 
+		nil, 
+		fRadius, 
+		DOTA_UNIT_TARGET_TEAM_FRIENDLY,
+		DOTA_UNIT_TARGET_HERO,
+		DOTA_UNIT_TARGET_FLAG_NONE,
+		FIND_ANY_ORDER,
+		false 
+	);
+
+	for _,unit in pairs(units) do
+		FindClearSpaceForUnit(unit, unit:GetAbsOrigin(), true);
+	end
 end

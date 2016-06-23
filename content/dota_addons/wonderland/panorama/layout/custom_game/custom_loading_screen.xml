@@ -1,0 +1,13 @@
+<root>
+	<styles>
+		<include src="file://{resources}/styles/custom_game/custom_loading_screen.css" />
+	</styles>
+	<Panel class="WonderlandLoadingRoot">
+		<Panel id="LoadingScreen" >
+			<Image class="LoadingBackground" src="file://{images}/custom_game/loading_screen/loading_background.psd" />
+		</Panel>
+		<Panel id="TitlePanel">
+			<Label id="WonderlandTitle" text="#addon_game_name" style="" />
+		</Panel>
+	</Panel>
+</root>
