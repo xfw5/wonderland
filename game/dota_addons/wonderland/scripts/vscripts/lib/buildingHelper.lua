@@ -61,6 +61,7 @@ function BuildingHelper:OnCancelCommand(args)
     local player = PlayerResource:GetPlayer(playerID)
     player.activeBuilding = nil
 
+    print(player.activeBuilder)
     if not player.activeBuilder or not IsValidEntity(player.activeBuilder) then
         return
     end
@@ -247,6 +248,7 @@ function BuildingHelper:StartBuilding(builder)
 			building:ModifyHealth(currentHP, nil, true, 0);
 
 			if percent >= 1 and callbacks.onConstructionCompleted then
+				building:SetBaseHealthRegen(regen)
 				callbacks.onConstructionCompleted(building)
 			else
 				if building.buildInterrupted then
@@ -408,6 +410,10 @@ function BuildingHelper:ClearQueue(builder)
             work.refund = true
         end
 
+        if work.ghostBuilding then
+        	UTIL_Remove(work.ghostBuilding)
+        end
+
         if work.callbacks.onConstructionCancelled ~= nil then
             work.callbacks.onConstructionCancelled(work)
         end
@@ -422,6 +428,10 @@ function BuildingHelper:ClearQueue(builder)
         end
         
         table.remove(builder.buildingQueue, 1)
+
+        if work.ghostBuilding then
+        	UTIL_Remove(work.ghostBuilding)
+        end
 
         if work.callbacks.onConstructionCancelled ~= nil then
             work.callbacks.onConstructionCancelled(work)

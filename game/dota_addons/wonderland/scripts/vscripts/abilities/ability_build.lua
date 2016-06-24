@@ -90,6 +90,7 @@ function Build( keys )
 	local gold_cost = abilitykv.BuildCost
 	local lumber_cost = abilitykv.LumberCost
 	local buildGridSize = abilitykv.BuildGridSize
+	local buildingPariticle = abilitykv.BuildParticle
 	local buildSize = buildGridSize * 64
 
 	local hero = caster:GetPlayerOwner():GetAssignedHero()
@@ -157,7 +158,11 @@ function Build( keys )
 	-- A building unit was created
 	keys:OnConstructionStarted(function(unit)
 		Utils:BTPrint("Started construction of " .. unit:GetUnitName() .. " " .. unit:GetEntityIndex())
-		-- Play construction sound
+		
+		if buildingPariticle then
+			unit.buildingPariticle = ParticleManager:CreateParticle(buildingPariticle, PATTACH_POINT, unit)
+			ParticleManager:SetParticleControl(unit.buildingPariticle, 0, unit:GetAbsOrigin())
+		end
 
 		-- Store the Build Time, Gold Cost and secondary resource the building 
 	    -- This is necessary for repair to know what was the cost of the building and use resources periodically
@@ -194,6 +199,10 @@ function Build( keys )
 	keys:OnConstructionCompleted(function(unit)
 		Utils:BTPrint("Completed construction of " .. unit:GetUnitName() .. " " .. unit:GetEntityIndex())
 		
+		if unit.buildingPariticle then
+			ParticleManager:DestroyParticle(unit.buildingPariticle, true)
+		end
+
 		-- Play construction complete sound
 
 		-- Give the unit their original attack capability

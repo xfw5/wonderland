@@ -112,19 +112,8 @@ function OnBuildingStart( params )
 
         if ( (!GameUI.IsShiftDown() && pressedShift) || !Entities.IsAlive( builderIndex ) )
         {
-            EndBuildingHelper();
+            OnBuildingEnd();
         }
-    }
-}
-
-function EndBuildingHelper()
-{
-    state = 'disabled'
-    if (modelParticle !== undefined){
-         Particles.DestroyParticleEffect(modelParticle, true)
-    }
-    for (var i in gridParticles) {
-        Particles.DestroyParticleEffect(gridParticles[i], true)
     }
 }
 
