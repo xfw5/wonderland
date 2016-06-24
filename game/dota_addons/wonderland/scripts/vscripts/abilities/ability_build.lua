@@ -74,7 +74,7 @@ function Build( keys )
 	local caster = keys.caster
 	local ability = keys.ability
 	local ability_name = ability:GetAbilityName()
-	local abilitykv = BuildingHelper.BuildingsKV[ability_name]
+	local abilitykv = BuildingHelper.buildingsKV[ability_name]
 
     -- Hold needs an Interrupt
 	if caster.bHold then
@@ -105,8 +105,7 @@ function Build( keys )
 		return
 	end
 
-    -- Makes a building dummy and starts panorama ghosting
-	BuildingHelper:AddBuilding(keys, abilitykv)
+	BuildingHelper:ActiveWithPreviewBuilding(keys, abilitykv)
 
 	-- Additional checks to confirm a valid building position can be performed here
 	keys:OnPreConstruction(function(vPos)
@@ -134,8 +133,7 @@ function Build( keys )
     	-- Play a sound
     	EmitSoundOnClient("DOTA_Item.ObserverWard.Activate", player)
 
-    	-- Move the units away from the building place
-		local units = FindUnitsInRadius(teamNumber, vPos, nil, buildSize, DOTA_UNIT_TARGET_TEAM_FRIENDLY, DOTA_UNIT_TARGET_BASIC + DOTA_UNIT_TARGET_HERO, 0, FIND_ANY_ORDER, false)
+		Utils:PushAwayUnits(teamNumber, vPos, buildSize)
 	end)
 
     -- The construction failed and was never confirmed due to the gridnav being blocked in the attempted area
@@ -147,8 +145,7 @@ function Build( keys )
 
 	-- Cancelled due to ClearQueue
 	keys:OnConstructionCancelled(function(work)
-		local name = work.name
-		Utils:BTPrint("Cancelled construction of " .. name)
+		Utils:BTPrint("Cancelled construction of " .. work.unitName)
 
 		-- Refund resources for this cancelled work
 		if work.refund then
@@ -190,7 +187,7 @@ function Build( keys )
     	--CheckAbilityRequirements( unit, player )
 
 		-- Add the building handle to the list of structures
-		table.insert(player.structures, unit)
+		--Players:AddStructure(playerID, unit)
 	end)
 
 	-- A building finished construction
@@ -215,20 +212,7 @@ function Build( keys )
             end
         end--]]
 
-		local building_name = unit:GetUnitName()
-		local builders = {}
-		if unit.builder then
-			table.insert(builders, unit.builder)
-		elseif unit.units_repairing then
-			builders = unit.units_repairing
-		end
-
-		-- Add 1 to the player building tracking table for that name
-		if not player.buildings[building_name] then
-			player.buildings[building_name] = 1
-		else
-			player.buildings[building_name] = player.buildings[building_name] + 1
-		end
+		Players:AddStructure( playerID, unit )
 
 		-- Update the abilities of the builders and buildings
     	--[[for k,units in pairs(player.units) do

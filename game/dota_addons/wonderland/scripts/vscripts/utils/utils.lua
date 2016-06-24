@@ -105,6 +105,14 @@ function Utils:Round(fNum, fIDP)
   	return math.floor(fNum * mult + 0.5) / mult
 end
 
+function Utils:ToBool(s)
+    return s==true or s=="true" or s=="1" or s==1
+end
+
+function Utils:VectorToString(vector)
+  return vector.x .." "..vector.y.." "..vector.z
+end
+
 function Utils:PushAwayUnits(nTeamNum, vLocation, fRadius)
 	local units = FindUnitsInRadius(	
 		nTeamNum,

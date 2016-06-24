@@ -1,8 +1,10 @@
 
 require("lib/timers")
 require("lib/buildingHelper")
+require('lib/notifications')
 require("mechanics/Players")
 require("utils/utils")
+require("ui/messages")
 require("Wonderland")
 
 function Precache( context )

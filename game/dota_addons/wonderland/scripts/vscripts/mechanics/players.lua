@@ -8,7 +8,6 @@ function Players:Init( playerID, hero )
     hero.units = {} -- This keeps the handle of all the units of the player army, to iterate for unlocking upgrades
     hero.structures = {} -- This keeps the handle of the constructed units, to iterate for unlocking upgrades
     hero.heroes = {} -- Owned hero units (not this assigned hero, which will be a fake)
-    hero.altar_structures = {} -- Keeps altars linked
 
     hero.buildings = {} -- This keeps the name and quantity of each building
     hero.upgrades = {} -- This kees the name of all the upgrades researched, so each unit can check and upgrade itself on spawn
@@ -39,12 +38,6 @@ function Players:GetHeroes( playerID )
     local hero = PlayerResource:GetSelectedHeroEntity(playerID)
 
     return hero.heroes
-end
-
-function Players:GetAltars( playerID )
-    local hero = PlayerResource:GetSelectedHeroEntity(playerID)
-
-    return hero.altar_structures
 end
 
 function Players:GetUpgradeTable( playerID )
@@ -210,7 +203,7 @@ function Players:AddUnit( playerID, unit )
 
     table.insert(playerUnits, unit)
 
-    Scores:IncrementUnitsProduced(playerID, unit)
+   -- Scores:IncrementUnitsProduced(playerID, unit)
 end
 
 function Players:AddHero( playerID, hero )
@@ -218,7 +211,7 @@ function Players:AddHero( playerID, hero )
 
     table.insert(playerHeroes, hero)
 
-    Scores:AddHeroesUsed(playerID, hero:GetUnitName())
+   -- Scores:AddHeroesUsed(playerID, hero:GetUnitName())
 end
 
 function Players:AddStructure( playerID, building )
@@ -230,7 +223,7 @@ function Players:AddStructure( playerID, building )
 
     table.insert(playerStructures, building)
 
-    Scores:IncrementBuildingsProduced( playerID, unit )
+   -- Scores:IncrementBuildingsProduced( playerID, unit )
 end
 
 function Players:RemoveUnit( playerID, unit )
@@ -308,14 +301,6 @@ function Players:HasRequirementForAbility( playerID, ability_name )
 
     return true
 end
-
-function Players:HasAltar( playerID )
-    local hero = PlayerResource:GetSelectedHeroEntity(playerID)
-
-    return IsValidAlive(hero.altar) and hero.altar or false
-end
-
----------------------------------------------------------------
 
 -- Return ability handle or nil
 function Players:FindAbilityOnStructures( playerID, ability_name )

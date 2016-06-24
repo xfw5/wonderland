@@ -7,20 +7,27 @@ end
 GRID_SIZE = 64
 GRID_TILE = 1
 BUILDING_DEBUG = 1
+GHOST_MODEL_ALPHA = 0.02*255
+GHOST_MODEL_COLOR = Vector(0,255,0)
+OUT_OF_WROLD_LOCATION = Vector(100000, 0, 0)
 
 function BuildingHelper:Init()
-	BuildingHelper.BuildingsKV = { }
+	BuildingHelper.buildingsKV = { }
+	BuildingHelper.previewBuildings = { }
+	BuildingHelper.ghostBuildings = { }
 
-	BuildingHelper:FilterBuildingsKV(GameRules.AbilitiesKV, BuildingHelper.BuildingsKV)
-	BuildingHelper:FilterBuildingsKV(GameRules.ItemsKV, BuildingHelper.BuildingsKV)
+	BuildingHelper:FilterBuildingsKV(GameRules.AbilitiesKV, BuildingHelper.buildingsKV)
+	BuildingHelper:FilterBuildingsKV(GameRules.ItemsKV, BuildingHelper.buildingsKV)
 
 	BuildingHelper:InitGrids()
+
+	LinkLuaModifier("modifier_out_of_game", "modifier/modifier_out_of_game", LUA_MODIFIER_MOTION_NONE)
 
 	CustomGameEventManager:RegisterListener( "building_helper_build_command", Dynamic_Wrap(BuildingHelper, "OnBuildCommand"))
 	CustomGameEventManager:RegisterListener( "building_helper_cancel_command", Dynamic_Wrap(BuildingHelper, "OnCancelCommand"))
 end
 
-function BuildingHelper:AddBuilding( keys , abilityKV)
+function BuildingHelper:ActiveWithPreviewBuilding( keys , abilityKV)
 	-- Callbacks
     callbacks = BuildingHelper:SetCallbacks(keys)
     local builder = keys.caster
@@ -35,17 +42,17 @@ function BuildingHelper:AddBuilding( keys , abilityKV)
     local size = abilityKV.BuildGridSize
     local unitName = abilityKV.UnitName
 
-    -- Basic event table to send
-    local event = { state = "active", size = size, scale = 1.0, builderIndex = builder:GetEntityIndex() }
-
     -- Set the active variables and callbacks
     local playerID = builder:GetMainControllingPlayer()
     local player = PlayerResource:GetPlayer(playerID)
     player.activeBuilder = builder
-    player.activeBuilding = unitName
+    player.activeBuildingName = unitName
     player.activeBuildingKV = abilityKV
     player.activeCallbacks = callbacks
 
+    player.activePreviewBuilding = BuildingHelper:GetOrCreatePreviewModel(unitName)
+
+    local event = { state = "active", size = size, scale = 1.0, ghostEntIndex = player.activePreviewBuilding:GetEntityIndex(), builderIndex = builder:GetEntityIndex() }
     CustomGameEventManager:Send_ServerToPlayer(player, "building_helper_enable", event)
 end
 
@@ -68,10 +75,10 @@ function BuildingHelper:OnBuildCommand(args)
     local location = Vector(x, y, z)
 
     local player = PlayerResource:GetPlayer(args['PlayerID'])
-    local queue = args['Queue']
+    local queue = Utils:ToBool(args['Queue'])
     local builder = player.activeBuilder
 
-    Utils:BTPrint("Build command, queue: ".. queue)
+    Utils:BTPrint("On build command, queue: ".. tostring(queue))
 
     -- Cancel current repair
     if builder:HasModifier("modifier_builder_repairing") and not queue then
@@ -86,17 +93,17 @@ function BuildingHelper:OnBuildCommand(args)
 end
 
 function BuildingHelper:QueueBuilding(player, builder, vLocation, bQueued )
-    local building = player.activeBuilding
-    local buildingTable = player.activeBuildingKV
+    local buildingName = player.activeBuildingName
+    local buildingKV = player.activeBuildingKV
     local size = 1--activeBuildingKV.BuildGridSize
     local callbacks = player.activeCallbacks
 
     BuildingHelper:SnapToGrid(size, vLocation)
-	if BuildingHelper:IsAreaBlocked(vLocation, size) then
-		if callbacks.onConstructionFailed then
-			callbacks.onConstructionFailed()
-		end
-	end
+  	if BuildingHelper:IsAreaBlocked(vLocation, size) then
+  		if callbacks.onConstructionFailed then
+  			callbacks.onConstructionFailed()
+  		end
+  	end
 
     if callbacks.onPreConstruction then
         local result = callbacks.onPreConstruction(vLocation)
@@ -113,22 +120,24 @@ function BuildingHelper:QueueBuilding(player, builder, vLocation, bQueued )
         BuildingHelper:ClearQueue(builder)
     end
 
-    -- Add this to the builder queue
-    local buildInfo = 
+	local ghostBuilding = BuildingHelper:CreateGhost(buildingName, vLocation)
+    local work = 
     {
-    	location = vLocation,
-    	name = building,
-    	buildingTable = buildingTable,
-    	callbacks = callbacks
-	}
-    table.insert(builder.buildingQueue, buildInfo)
+        location = vLocation,
+      	unitName = buildingName,
+      	ghostBuilding = ghostBuilding,
+      	ghostPariticelIndex = modelParticle,
+      	buildingKV = buildingKV,
+      	callbacks = callbacks
+  	}
+    table.insert(builder.buildingQueue, work)
 
     -- If the builder doesn't have a current work, start the queue
     -- Extra check for builder-inside behaviour, those abilities are always queued
     if builder.work == nil then
+    	Utils:BTPrint("Builder doesn't have work to do, start right away")
         builder.work = builder.buildingQueue[1]
         BuildingHelper:ProcessQueue(builder)
-        Utils:BTPrint("Builder doesn't have work to do, start right away")
     else
         Utils:BTPrint("Work was queued, builder already has work to do")
         BuildingHelper:PrintQueue(builder)
@@ -136,56 +145,156 @@ function BuildingHelper:QueueBuilding(player, builder, vLocation, bQueued )
 end
 
 function BuildingHelper:ProcessQueue(builder)
+	if (builder.move_to_build_timer) then 
+		Timers:RemoveTimer(builder.move_to_build_timer) 
+	end
+
 	if builder.buildingQueue and #builder.buildingQueue > 0 then
         BuildingHelper:PrintQueue(builder)
 
         local work = builder.buildingQueue[1]
         table.remove(builder.buildingQueue, 1) --Pop
 
-        local buildingTable = work.buildingTable
-        local castRange = buildingTable:GetVal("AbilityCastRange", "number")
+        local buildingKV = work.buildingKV
+        local castRange = buildingKV.AbilityCastRange
         local callbacks = work.callbacks
         local location = work.location
         builder.work = work
 
-        -- Make the caster move towards the point
-        local abilName = "move_to_point_" .. tostring(castRange)
-        if AbilityKVs[abilName] == nil then
-            Utils:BTPrint('Error: ' .. abilName .. ' was not found in npc_abilities_custom.txt. Using the ability move_to_point_100')
-            abilName = "move_to_point_100"
-        end
-
-        -- If unit has other move_to_point abils, we should clean them up here
-        for i=0,15 do
-            local abil = builder:GetAbilityByIndex(i)
-            if abil then
-                local name = abil:GetAbilityName()
-                if name ~= abilName and StringStartsWith(name, "move_to_point_") then
-                    builder:RemoveAbility(name)
-                end
-            end
-        end
-
-        if not builder:HasAbility(abilName) then
-            builder:AddAbility(abilName)
-        end
-        local abil = builder:FindAbilityByName(abilName)
-        abil:SetLevel(1)
-
-        Timers:CreateTimer(function()
-            builder:CastAbilityOnPosition(location, abil, 0)
-
-            -- Change builder state
+        builder.move_to_build_timer = Timers:CreateTimer(0.03, function()
+            builder:MoveToPosition(location)
+            if not IsValidEntity(builder) or not builder:IsAlive() then return end
             builder.state = "moving_to_build"
 
-            Utils:BTPrint("AdvanceQueue - "..builder:GetUnitName().." "..builder:GetEntityIndex().." moving to build "..work.name.." at "..VectorString(location))
-        end)
+            local distance = (location - builder:GetAbsOrigin()):Length2D()
+            if distance > castRange then
+                return 0.03
+            else
+                builder:Stop()
+                
+                -- Self placement goes directly to the OnConstructionStarted callback
+                if work.unitName == builder:GetUnitName() then
+                    local callbacks = work.callbacks
+                    if callbacks.onConstructionStarted then
+                        callbacks.onConstructionStarted(builder)
+                    end
+
+                else
+                    BuildingHelper:StartBuilding(builder)
+                end
+                return
+            end
+        end)    
     
     else
         -- Set the builder work to nil to accept next work directly
         Utils:BTPrint("Builder "..builder:GetUnitName().." "..builder:GetEntityIndex().." finished its building Queue")
         builder.state = "idle"
         builder.work = nil
+    end
+end
+
+function BuildingHelper:StartBuilding(builder)
+    local playerID = builder:GetMainControllingPlayer()
+    local work = builder.work
+    local callbacks = work.callbacks
+    local unitName = work.unitName
+    local location = work.location
+    local player = PlayerResource:GetPlayer(playerID)
+    local playerHero = PlayerResource:GetSelectedHeroEntity(playerID)
+    local buildingKV = work.buildingKV
+    local gridSize = buildingKV.BuildGridSize
+    local buildTime = buildingKV.BuildTime
+
+    BuildingHelper:RemoveGhost(work)
+
+	if BuildingHelper:IsAreaBlocked(location, gridSize) then
+  		if callbacks.onConstructionFailed then
+  			callbacks.onConstructionFailed()
+  		end
+
+        -- Remove the model particle and Advance Queue
+        BuildingHelper:ProcessQueue(builder)
+        BuildingHelper:ClearWorkParticles(work)
+
+        -- Building canceled, refund resources
+        work.refund = true
+        callbacks.onConstructionCancelled(work)
+        return
+    end
+
+    Utils:BTPrint("Initializing Building Entity: "..unitName.." at "..Utils:VectorToString(location))
+
+    -- Mark this work in progress, skip refund if cancelled as the building is already placed
+    work.inProgress = true
+
+    local building = CreateUnitByName(unitName, location, false, playerHero, palyer, player:GetTeamNumber())
+    local regen = building:GetBaseHealthRegen()
+    building:SetBaseHealthRegen(0)
+
+    -- Start construction
+    if callbacks.onConstructionStarted then
+        callbacks.onConstructionStarted(building)
+    end
+
+    building.buildingProgress = 0
+    building.buildingProgressTimer = Timers:CreateTimer(function()
+    	local progressDelta = 0.1
+    	if IsValidEntity(building) and building:IsAlive() then
+			building.buildingProgress = building.buildingProgress + progressDelta;
+			local percent = building.buildingProgress / buildTime;
+			local currentHP = math.ceil(percent * building:GetMaxHealth());
+			building:ModifyHealth(currentHP, nil, true, 0);
+
+			if percent >= 1 and callbacks.onConstructionCompleted then
+				callbacks.onConstructionCompleted(building)
+			else
+				if building.buildInterrupted then
+			    	building.buildInterrupted = false;
+			    else
+			    	return progressDelta;
+			    end
+			end
+		end
+	end)
+
+    building.fireEffect = GameRules.UnitsKV[unitName]["FireEffect"]
+    building.fireEffectAttachPoint = GameRules.UnitsKV[unitName]["FireEffectAttachPoint"]
+    building.onBelowHalfHealthProc = false
+    building.healthChecker = Timers:CreateTimer(.2, function()
+        if IsValidEntity(building) and building:IsAlive() then
+            local health_percentage = building:GetHealthPercent() * 0.01
+            local belowThreshold = health_percentage < 0.5
+            if belowThreshold and not building.onBelowHalfHealthProc and building.state == "complete" then
+                if building.fireEffect then
+                    if building.fireEffectAttachPoint then
+                        building.fireEffectParticle = ParticleManager:CreateParticle(building.fireEffect, PATTACH_CUSTOMORIGIN_FOLLOW, building)
+                        ParticleManager:SetParticleControlEnt(building.fireEffectParticle, 0, building, PATTACH_POINT_FOLLOW, building.fireEffectAttachPoint, building:GetAbsOrigin(), true)
+                    else
+                        building.fireEffectParticle = ParticleManager:CreateParticle(building.fireEffect, PATTACH_ABSORIGIN_FOLLOW, building)
+                    end
+                end
+            
+                callbacks.onBelowHalfHealth(building)
+                building.onBelowHalfHealthProc = true
+            elseif not belowThreshold and building.onBelowHalfHealthProc and building.state == "complete" then
+                if building.fireEffect then
+                    ParticleManager:DestroyParticle(building.fireEffectParticle, false)
+                end
+
+                callbacks.onAboveHalfHealth(building)
+                building.onBelowHalfHealthProc = false
+            end
+        else
+            return nil
+        end
+        return .2
+    end)
+
+    BuildingHelper:ProcessQueue(builder)
+
+    if work.particleIndex then 
+    	ParticleManager:DestroyParticle(work.particleIndex, true)
     end
 end
 
@@ -308,7 +417,10 @@ function BuildingHelper:ClearQueue(builder)
     while #builder.buildingQueue > 0 do
         work = builder.buildingQueue[1]
         work.refund = true --Refund this
-        ParticleManager:DestroyParticle(work.particleIndex, true)
+        if work.particleIndex then 
+          ParticleManager:DestroyParticle(work.particleIndex, true)
+        end
+        
         table.remove(builder.buildingQueue, 1)
 
         if work.callbacks.onConstructionCancelled ~= nil then
@@ -317,17 +429,12 @@ function BuildingHelper:ClearQueue(builder)
     end
 end
 
---[[
-    PrintQueue
-    * Shows the current queued work for this builder
-]]--
 function BuildingHelper:PrintQueue(builder)
     Utils:BTPrint("Builder Queue of "..builder:GetUnitName().. " "..builder:GetEntityIndex())
-    --[[local buildingQueue = builder.buildingQueue
-    for k,v in pairs(buildingQueue) do
-        Utils:BTPrint(" #"..k..": "..buildingQueue[k]["name"].." at "..buildingQueue[k]["location"])
-    end--]]
-    print("------------------------------------")
+    local buildingQueue = builder.buildingQueue
+    for i,v in pairs(buildingQueue) do
+        Utils:BTPrint(" #"..i..": "..buildingQueue[i]["unitName"].." at "..Utils:VectorToString(buildingQueue[i]["location"]))
+    end
 end
 
 function BuildingHelper:FilterBuildingsKV(kv, result)
@@ -346,7 +453,7 @@ function BuildingHelper:FilterBuildingsKV(kv, result)
 end
 
 function BuildingHelper:InitGrids()
-	self.GridsBlocked = {}
+	self.gridsBlocked = {}
 
 	local worldMin = Vector(GetWorldMinX(), GetWorldMinY(), 0)
     local worldMax = Vector(GetWorldMaxX(), GetWorldMaxY(), 0)
@@ -372,6 +479,44 @@ function BuildingHelper:InitGrids()
 	end
 end
 
+function BuildingHelper:GetOrCreatePreviewModel(unitName)
+	if BuildingHelper.previewBuildings[unitName] then
+        return BuildingHelper.previewBuildings[unitName]
+    else
+        Utils:BTPrint("Add preview building "..unitName)
+        local preview = CreateUnitByName(unitName, OUT_OF_WROLD_LOCATION, false, nil, nil, 0)
+        preview:SetAbsOrigin(OUT_OF_WROLD_LOCATION)
+        preview:AddEffects(EF_NODRAW)
+        preview:AddNewModifier(preview, nil, "modifier_out_of_game", {})
+        BuildingHelper.previewBuildings[unitName] = preview
+        return preview
+    end
+end
+
+function BuildingHelper:CreateGhost(unitName, vLocation)
+	local ghost = CreateUnitByName(unitName, vLocation, false, nil, nil, 0)
+    ghost:AddNewModifier(ghost, nil, "modifier_out_of_game", {})
+    
+    local modelParticle = ParticleManager:CreateParticleForPlayer("particles/buildinghelper/ghost_model.vpcf", PATTACH_ABSORIGIN, ghost, player)
+    ParticleManager:SetParticleControlEnt(modelParticle, 1, ghost, PATTACH_ABSORIGIN_FOLLOW, "attach_hitloc", ghost:GetAbsOrigin(), true) -- Model attach          
+    ParticleManager:SetParticleControl(modelParticle, 2, GHOST_MODEL_COLOR) 
+    ParticleManager:SetParticleControl(modelParticle, 3, Vector(GHOST_MODEL_ALPHA,0,0)) -- Alpha
+    ParticleManager:SetParticleControl(modelParticle, 4, Vector(1,0,0)) -- Scale
+
+    ghost.modelParticle = modelParticle
+    ghost:NoHealthBar()
+    ghost:SetDayTimeVisionRange(0)
+    ghost:SetNightTimeVisionRange(0)
+
+    return ghost
+end
+
+function BuildingHelper:RemoveGhost(work)
+	if work.ghostBuilding then
+		UTIL_Remove(work.ghostBuilding)
+	end
+end
+
 function BuildingHelper:InitializeBuilder(builder)
     Utils:BTPrint("InitializeBuilder "..builder:GetUnitName().." "..builder:GetEntityIndex())
 
@@ -389,11 +534,11 @@ function BuildingHelper:RemoveBuilder(builder)
 end
 
 function BuildingHelper:BlockGrid(x, y, bDebug)
-	if self.GridsBlocked[x] == nil then
-		self.GridsBlocked[x] = {};
+	if self.gridsBlocked[x] == nil then
+		self.gridsBlocked[x] = {};
 	end
 
-	self.GridsBlocked[x][y] = true;
+	self.gridsBlocked[x][y] = true;
 
 	if bDebug then
 		local pos = Vector(GridNav:GridPosToWorldCenterX(x), GridNav:GridPosToWorldCenterY(y), 0)
@@ -411,11 +556,11 @@ function BuildingHelper:BlockArea(vLocation, nSize, bDebug)
 end
 
 function BuildingHelper:IsGridBlocked( x, y)
-	if self.GridsBlocked[x] == nil then
+	if self.gridsBlocked[x] == nil then
 		return false
 	end
 
-	if self.GridsBlocked[x][y] == nil then
+	if self.gridsBlocked[x][y] == nil then
 		return false
 	end
 

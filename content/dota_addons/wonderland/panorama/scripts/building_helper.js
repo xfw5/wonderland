@@ -12,14 +12,12 @@ var builderIndex;
 
 function OnBuildingStart( params )
 {
-	$.Msg("On Building Start...")
-	
     if (params !== undefined)
     {
         state = params.state;
         size = params.size;
         builderIndex = params.builderIndex;
-        var entindex = params.entindex;
+        var entindex = params.ghostEntIndex;
         
         pressedShift = GameUI.IsShiftDown();
 
@@ -33,6 +31,15 @@ function OnBuildingStart( params )
                 Particles.DestroyParticleEffect(gridParticles[i], true)
             }
         }
+        
+        var ghost_color = [0, 255, 0]
+        
+        // Building Ghost
+        modelParticle = Particles.CreateParticle("particles/buildinghelper/ghost_model.vpcf", ParticleAttachment_t.PATTACH_ABSORIGIN, localHeroIndex);
+        Particles.SetParticleControlEnt(modelParticle, 1, entindex, ParticleAttachment_t.PATTACH_ABSORIGIN_FOLLOW, "follow_origin", Entities.GetAbsOrigin(entindex), true)
+        Particles.SetParticleControl(modelParticle, 2, ghost_color)
+        Particles.SetParticleControl(modelParticle, 3, [model_alpha,0,0])
+        Particles.SetParticleControl(modelParticle, 4, [1,0,0])
 
         // Grid squares
         gridParticles = [];
@@ -51,7 +58,7 @@ function OnBuildingStart( params )
 
         var mPos = GameUI.GetCursorPosition();
         var GamePos = Game.ScreenXYToWorld(mPos[0], mPos[1]);
-
+		
         if ( GamePos !== null ) 
         {
             SnapToGrid(GamePos, size)
@@ -67,6 +74,8 @@ function OnBuildingStart( params )
             boundingRect["bottomBorderY"] = GamePos[1]-halfSide
 
             if (GamePos[0] > 10000000) return
+            
+			Particles.SetParticleControl(modelParticle, 0, GamePos)
 
             // Building Base Grid
             for (var x=boundingRect["leftBorderX"]+32; x <= boundingRect["rightBorderX"]-32; x+=64)
@@ -105,6 +114,17 @@ function OnBuildingStart( params )
         {
             EndBuildingHelper();
         }
+    }
+}
+
+function EndBuildingHelper()
+{
+    state = 'disabled'
+    if (modelParticle !== undefined){
+         Particles.DestroyParticleEffect(modelParticle, true)
+    }
+    for (var i in gridParticles) {
+        Particles.DestroyParticleEffect(gridParticles[i], true)
     }
 }
 

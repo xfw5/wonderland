@@ -63,6 +63,7 @@ GameUI.SetMouseCallback( function( eventName, arg ) {
         // Left-click with a builder while BH is active
         if ( arg === 0 && state == "active")
         {
+        	$.Msg("state:active SendBuildCommand")
             return SendBuildCommand();
         }
 
